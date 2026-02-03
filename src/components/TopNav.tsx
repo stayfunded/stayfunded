@@ -116,7 +116,7 @@ export default function TopNav() {
             href="/strategy-analysis"
             className="hidden sm:inline-flex rounded-lg bg-amber-400 px-4 py-2 text-sm font-semibold text-black hover:bg-amber-300"
           >
-            Run Strategy Analysis (Free)
+            Start Strategy Analysis (Free)
           </Link>
 
           <Link
@@ -144,7 +144,7 @@ export default function TopNav() {
               href="/strategy-analysis"
               className="rounded-xl bg-amber-400 px-4 py-3 text-sm font-semibold text-black hover:bg-amber-300"
             >
-              Run Strategy Analysis (Free)
+              Start Strategy Analysis (Free)
             </Link>
 
             <div className="grid gap-2">
