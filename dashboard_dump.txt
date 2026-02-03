@@ -1,0 +1,1040 @@
+
+
+===== src/app/dashboard/page.tsx =====
+// src/app/dashboard/page.tsx
+"use client";
+
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
+import {
+  listAccounts,
+  getActiveAccount,
+  setActiveAccountId,
+  upsertAccount,
+  deleteAccount,
+  type Account,
+  type FirmPhase,
+} from "@/lib/accounts";
+
+function titleCase(s: string) {
+  return (s || "")
+    .trim()
+    .toLowerCase()
+    .split("-")
+    .filter(Boolean)
+    .map((p) => p.charAt(0).toUpperCase() + p.slice(1))
+    .join(" ");
+}
+
+function firmName(slug: string) {
+  const map: Record<string, string> = {
+    topstep: "Topstep",
+    apex: "Apex Trader Funding",
+    earn2trade: "Earn2Trade",
+    bulenox: "Bulenox",
+    "take-profit-trader": "Take Profit Trader",
+  };
+  const key = (slug || "").trim().toLowerCase();
+  return map[key] ?? titleCase(key);
+}
+
+function phaseLabel(phase: FirmPhase) {
+  const map: Record<FirmPhase, string> = {
+    discovery: "Discovery",
+    evaluation: "Evaluation",
+    stabilization: "Stabilization",
+    payout: "Payout",
+    maintenance: "Maintenance",
+  };
+  return map[phase] ?? String(phase);
+}
+
+function phaseNote(phase: FirmPhase) {
+  const map: Record<FirmPhase, string> = {
+    discovery: "Choose a firm/account context that supports a coherent plan.",
+    evaluation: "Run a structured plan under strict constraints and enforcement.",
+    stabilization: "After you pass, pros reduce variance and protect eligibility.",
+    payout: "Trade with payout rules in mind; avoid eligibility traps.",
+    maintenance: "Keep the plan boring on purpose to prevent slow failure.",
+  };
+  return map[phase] ?? "";
+}
+
+function formatUpdatedAt(iso?: string) {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "—";
+  return d.toLocaleString(undefined, {
+    month: "short",
+    day: "2-digit",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
+function Pill({
+  children,
+  tone = "neutral",
+}: {
+  children: React.ReactNode;
+  tone?: "neutral" | "success" | "warn";
+}) {
+  const cls =
+    tone === "success"
+      ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
+      : tone === "warn"
+      ? "bg-amber-50 text-amber-800 ring-amber-200"
+      : "bg-slate-50 text-slate-700 ring-slate-200";
+  return (
+    <span
+      className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ring-1 ${cls}`}
+    >
+      {children}
+    </span>
+  );
+}
+
+function displayAccountName(a: Account) {
+  return (
+    (a.name || "").trim() ||
+    (a.accountNumber || "").trim() ||
+    `${firmName(a.firmSlug)} account`
+  );
+}
+
+function Modal({
+  open,
+  title,
+  onClose,
+  children,
+}: {
+  open: boolean;
+  title: string;
+  onClose: () => void;
+  children: React.ReactNode;
+}) {
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-50">
+      <div
+        className="absolute inset-0 bg-slate-950/40 backdrop-blur-sm"
+        onClick={onClose}
+      />
+      <div className="absolute left-1/2 top-1/2 w-[92vw] max-w-xl -translate-x-1/2 -translate-y-1/2">
+        <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_40px_120px_rgba(2,6,23,0.35)]">
+          <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-6 py-4">
+            <div className="text-sm font-semibold text-slate-900">{title}</div>
+            <button
+              onClick={onClose}
+              className="rounded-xl bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50"
+            >
+              Close
+            </button>
+          </div>
+          <div className="px-6 py-5">{children}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const FIRM_OPTIONS = [
+  { value: "topstep", label: "Topstep" },
+  { value: "apex", label: "Apex Trader Funding" },
+  { value: "earn2trade", label: "Earn2Trade" },
+  { value: "bulenox", label: "Bulenox" },
+  { value: "take-profit-trader", label: "Take Profit Trader" },
+];
+
+const PHASE_OPTIONS: Array<{ value: FirmPhase; label: string; note: string }> = [
+  { value: "discovery", label: "Discovery", note: phaseNote("discovery") },
+  { value: "evaluation", label: "Evaluation", note: phaseNote("evaluation") },
+  { value: "stabilization", label: "Stabilization", note: phaseNote("stabilization") },
+  { value: "payout", label: "Payout", note: phaseNote("payout") },
+  { value: "maintenance", label: "Maintenance", note: phaseNote("maintenance") },
+];
+
+function AccountCard({
+  a,
+  active,
+  onOpen,
+  onSetActive,
+  onEdit,
+  onDelete,
+}: {
+  a: Account;
+  active: boolean;
+  onOpen: () => void;
+  onSetActive: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  const firm = (a.firmSlug || "").trim().toLowerCase();
+
+  return (
+    <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="truncate text-base font-semibold text-slate-950">
+            {displayAccountName(a)}
+          </div>
+
+          <div className="mt-1 flex flex-wrap items-center gap-2">
+            <Pill>{firmName(firm)}</Pill>
+            <Pill tone="warn">{phaseLabel(a.phase)}</Pill>
+            {active ? <Pill tone="success">Active</Pill> : null}
+          </div>
+
+          <div className="mt-3 text-sm text-slate-600">{phaseNote(a.phase)}</div>
+
+          <div className="mt-3 grid grid-cols-2 gap-x-6 gap-y-1 text-xs text-slate-600">
+            <div>Account #</div>
+            <div className="font-mono text-slate-800">
+              {(a.accountNumber || "").trim() || "—"}
+            </div>
+
+            <div>Type</div>
+            <div className="text-slate-800">{(a.accountType || "").trim() || "—"}</div>
+
+            <div>Updated</div>
+            <div className="text-slate-800">{formatUpdatedAt(a.updatedAt)}</div>
+          </div>
+        </div>
+
+        <div className="flex shrink-0 flex-col gap-2">
+          <button
+            type="button"
+            onClick={onOpen}
+            className="rounded-xl bg-slate-950 px-4 py-2 text-sm font-semibold text-white shadow-[0_10px_25px_rgba(2,6,23,0.25)] hover:opacity-95"
+          >
+            Open plan →
+          </button>
+
+          {active ? null : (
+            <button
+              type="button"
+              onClick={onSetActive}
+              className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-50"
+              title="Make this the active account (without navigating)"
+            >
+              Set active
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={onEdit}
+            className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-50"
+          >
+            Edit
+          </button>
+          <button
+            type="button"
+            onClick={onDelete}
+            className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-900 hover:bg-rose-100"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+
+      <div className="mt-4 flex flex-wrap gap-2">
+        <Link
+          href={`/firms/${firm}`}
+          className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+        >
+          Playbooks
+        </Link>
+        <Link
+          href={`/firms/${firm}/phases`}
+          className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+        >
+          Phases
+        </Link>
+        <Link
+          href={`/firms/${firm}/rules`}
+          className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+        >
+          Rules
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+export default function DashboardPage() {
+  const [accounts, setAccounts] = useState<Account[]>([]);
+  const [activeId, setActiveId] = useState<string>("");
+  const [loaded, setLoaded] = useState(false);
+
+  // modal state
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+
+  const [mFirm, setMFirm] = useState("topstep");
+  const [mPhase, setMPhase] = useState<FirmPhase>("evaluation");
+  const [mName, setMName] = useState("");
+  const [mAccountNumber, setMAccountNumber] = useState("");
+  const [mAccountType, setMAccountType] = useState("");
+
+  useEffect(() => {
+    // Lightweight SEO reinforcement for a client page.
+    try {
+      document.title = "Dashboard — Your Firm + Phase Plan | StayFunded";
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  useEffect(() => {
+    refresh();
+    setLoaded(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const activeAccount = useMemo(() => {
+    if (!activeId) return null;
+    return accounts.find((a) => a.id === activeId) ?? null;
+  }, [accounts, activeId]);
+
+  const counts = useMemo(() => {
+    const byFirm: Record<string, number> = {};
+    const byPhase: Record<string, number> = {};
+
+
+===== src/app/dashboard/accounts/page.tsx =====
+MISSING
+
+
+===== src/app/dashboard/accounts/[id]/page.tsx =====
+// src/app/dashboard/accounts/[id]/page.tsx
+"use client";
+
+import Link from "next/link";
+import { useMemo, useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import {
+  deleteAccount,
+  getAccountsState,
+  saveAccountsState,
+  setActiveAccountId,
+  titleizeFirm,
+  titleCase,
+  upsertAccount,
+  type FirmPhase,
+  type PropAccount,
+} from "@/lib/accounts";
+
+const PHASES: { value: FirmPhase; label: string }[] = [
+  { value: "discovery", label: "Discovery" },
+  { value: "evaluation", label: "Evaluation" },
+  { value: "stabilization", label: "Stabilization" },
+  { value: "payout", label: "Payout" },
+  { value: "maintenance", label: "Maintenance" },
+];
+
+export default function AccountDetailPage() {
+  const params = useParams<{ id: string }>();
+  const router = useRouter();
+
+  const id = (params?.id || "").toString();
+
+  const [account, setAccount] = useState<PropAccount | null>(null);
+  const [activeId, setActiveId] = useState<string | null>(null);
+
+  // form state
+  const [friendlyName, setFriendlyName] = useState("");
+  const [firmSlug, setFirmSlug] = useState("topstep");
+  const [accountType, setAccountType] = useState("");
+  const [accountNumber, setAccountNumber] = useState("");
+  const [phase, setPhase] = useState<FirmPhase>("evaluation");
+  const [linkedGroupId, setLinkedGroupId] = useState("");
+  const [notes, setNotes] = useState("");
+
+  useEffect(() => {
+    const s = getAccountsState();
+    setActiveId(s.activeAccountId);
+
+    const a = s.accounts.find((x) => x.id === id) ?? null;
+    setAccount(a);
+
+    if (a) {
+      setFriendlyName(a.friendlyName || "");
+      setFirmSlug((a.firmSlug || "topstep").toString());
+      setAccountType(a.accountType || "");
+      setAccountNumber(a.accountNumber || "");
+      setPhase(a.phase);
+      setLinkedGroupId(a.linkedGroupId || "");
+      setNotes(a.notes || "");
+    }
+  }, [id]);
+
+  const firmName = useMemo(() => titleizeFirm(firmSlug), [firmSlug]);
+  const isActive = useMemo(() => activeId === id, [activeId, id]);
+
+  if (!account) {
+    return (
+      <main className="bg-white">
+        <div className="mx-auto max-w-3xl px-6 py-12 md:px-10">
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 text-sm text-gray-700">
+            Account not found.
+            <div className="mt-4">
+              <Link href="/dashboard" className="font-semibold text-amber-700 hover:text-amber-800">
+                Back to dashboard →
+              </Link>
+            </div>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  return (
+    <main className="bg-white">
+      <div className="mx-auto max-w-3xl px-6 py-12 md:px-10">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <div className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+              Account
+            </div>
+            <h1 className="mt-1 text-3xl font-semibold tracking-tight text-gray-900">
+              {friendlyName || account.friendlyName}
+            </h1>
+            <p className="mt-2 text-sm text-gray-600">
+              {firmName} · {titleCase(phase)}
+              {accountType ? ` · ${accountType}` : ""}
+              {accountNumber ? ` · #${accountNumber}` : ""}
+            </p>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href="/dashboard"
+              className="rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-900 hover:bg-gray-50"
+            >
+              Back
+            </Link>
+
+            <button
+              type="button"
+              onClick={() => {
+                setActiveAccountId(id);
+                setActiveId(id);
+              }}
+              className={`rounded-xl px-4 py-2 text-sm font-semibold ${
+                isActive ? "bg-gray-900 text-white hover:bg-gray-800" : "bg-white text-gray-900 ring-1 ring-gray-200 hover:bg-gray-50"
+              }`}
+            >
+              {isActive ? "Active" : "Set active"}
+            </button>
+
+            <Link
+              href={`/firms/${firmSlug}/phases`}
+              className="rounded-xl bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-800"
+            >
+              Open playbooks
+            </Link>
+          </div>
+        </div>
+
+        <div className="mt-8 space-y-4">
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+            <div className="text-sm font-semibold text-gray-900">Basics</div>
+
+            <div className="mt-4 grid gap-3 md:grid-cols-2">
+              <div>
+                <div className="text-xs font-semibold text-gray-700">Friendly name</div>
+                <input
+                  value={friendlyName}
+                  onChange={(e) => setFriendlyName(e.target.value)}
+                  className="mt-2 w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-amber-300/40"
+                />
+              </div>
+
+              <div>
+                <div className="text-xs font-semibold text-gray-700">Firm slug</div>
+                <input
+                  value={firmSlug}
+                  onChange={(e) => setFirmSlug(e.target.value.trim().toLowerCase())}
+                  className="mt-2 w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-amber-300/40"
+                />
+                <div className="mt-1 text-xs text-gray-500">
+                  Display: <span className="font-semibold text-gray-900">{firmName}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-4 grid gap-3 md:grid-cols-2">
+              <div>
+                <div className="text-xs font-semibold text-gray-700">Account type (optional)</div>
+                <input
+                  value={accountType}
+                  onChange={(e) => setAccountType(e.target.value)}
+                  className="mt-2 w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-amber-300/40"
+                />
+              </div>
+              <div>
+                <div className="text-xs font-semibold text-gray-700">Account number (optional)</div>
+                <input
+                  value={accountNumber}
+                  onChange={(e) => setAccountNumber(e.target.value)}
+                  className="mt-2 w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-amber-300/40"
+                />
+              </div>
+            </div>
+
+            <div className="mt-4">
+              <div className="text-xs font-semibold text-gray-700">Linked group (optional)</div>
+              <input
+                value={linkedGroupId}
+                onChange={(e) => setLinkedGroupId(e.target.value)}
+                className="mt-2 w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-amber-300/40"
+              />
+            </div>
+
+            <div className="mt-4">
+              <div className="text-xs font-semibold text-gray-700">Phase</div>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {PHASES.map((p) => (
+                  <button
+                    key={p.value}
+                    type="button"
+                    onClick={() => setPhase(p.value)}
+                    className={`rounded-full border px-3 py-1 text-xs font-semibold ${
+                      phase === p.value
+                        ? "border-gray-900 bg-gray-900 text-white"
+                        : "border-gray-200 bg-white text-gray-800 hover:bg-gray-50"
+                    }`}
+                  >
+                    {p.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+            <div className="text-sm font-semibold text-gray-900">Notes</div>
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              className="mt-3 min-h-[120px] w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-amber-300/40"
+            />
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                const res = upsertAccount({
+                  id,
+                  friendlyName: (friendlyName || "").trim() || account.friendlyName,
+                  firmSlug: (firmSlug || "").trim().toLowerCase(),
+                  accountType: accountType.trim() || undefined,
+                  accountNumber: accountNumber.trim() || undefined,
+                  phase,
+                  linkedGroupId: linkedGroupId.trim() || undefined,
+                  notes: notes.trim() || undefined,
+                });
+
+                setAccount(res.account);
+                // keep active selection stable
+                const s = getAccountsState();
+                setActiveId(s.activeAccountId);
+              }}
+              className="rounded-xl bg-gray-900 px-5 py-3 text-sm font-semibold text-white hover:bg-gray-800"
+            >
+              Save changes
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                // Delete + redirect
+                deleteAccount(id);
+                router.push("/dashboard");
+              }}
+              className="rounded-xl border border-rose-200 bg-rose-50 px-5 py-3 text-sm font-semibold text-rose-900 hover:bg-rose-100"
+            >
+              Delete account
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                // Convenience: if you edit firm/phase, ensure active account reflects it
+                const s = getAccountsState();
+                if (s.activeAccountId !== id) {
+                  saveAccountsState({ ...s, activeAccountId: id });
+                  setActiveId(id);
+                }
+              }}
+              className="rounded-xl border border-gray-200 bg-white px-5 py-3 text-sm font-semibold text-gray-900 hover:bg-gray-50"
+            >
+              Make active
+            </button>
+          </div>
+
+          <div className="rounded-2xl border border-gray-200 bg-gray-50 p-5 text-sm text-gray-700">
+            <div className="font-semibold text-gray-900">Open playbooks</div>
+            <div className="mt-2 flex flex-wrap gap-2">
+              <Link
+                href={`/firms/${firmSlug}/phases`}
+                className="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-amber-700 ring-1 ring-gray-200 hover:bg-gray-50 hover:text-amber-800"
+              >
+                Phases hub →
+              </Link>
+              <Link
+                href={`/paths?firm=${encodeURIComponent(firmSlug)}`}
+                className="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-gray-200 hover:bg-gray-50"
+              >
+                Paths (legacy tool) →
+              </Link>
+            </div>
+            <div className="mt-2 text-xs text-gray-500">
+              Next: we’ll make phases/playbooks read your active account automatically.
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  );
+}
+
+
+===== src/app/dashboard/accounts/new/page.tsx =====
+// src/app/dashboard/accounts/new/page.tsx
+"use client";
+
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useMemo, useState } from "react";
+import {
+  upsertAccount,
+  titleizeFirm,
+  type FirmPhase,
+} from "@/lib/accounts";
+
+const PHASES: { value: FirmPhase; label: string; note: string }[] = [
+  { value: "discovery", label: "Discovery", note: "Choosing structure before you pay for resets." },
+  { value: "evaluation", label: "Evaluation", note: "Passing rules without blowing the account." },
+  { value: "stabilization", label: "Stabilization", note: "Early funded survival + consistency pressure." },
+  { value: "payout", label: "Payout", note: "Protecting payout eligibility + avoiding silent DQs." },
+  { value: "maintenance", label: "Maintenance", note: "Long-run survival across cycles." },
+];
+
+const FIRM_CHOICES = ["topstep", "apex", "earn2trade", "take-profit-trader"] as const;
+
+export default function NewAccountPage() {
+  const router = useRouter();
+
+  const [friendlyName, setFriendlyName] = useState("");
+  const [firmSlug, setFirmSlug] = useState("topstep");
+  const [accountType, setAccountType] = useState("");
+  const [accountNumber, setAccountNumber] = useState("");
+  const [phase, setPhase] = useState<FirmPhase>("evaluation");
+  const [linkedGroupId, setLinkedGroupId] = useState("");
+  const [notes, setNotes] = useState("");
+
+  const firmName = useMemo(() => titleizeFirm(firmSlug), [firmSlug]);
+
+  const canSave = useMemo(() => {
+    return (friendlyName || "").trim().length > 0 && (firmSlug || "").trim().length > 0;
+  }, [friendlyName, firmSlug]);
+
+  return (
+    <main className="bg-white">
+      <div className="mx-auto max-w-3xl px-6 py-12 md:px-10">
+        <div className="flex items-end justify-between gap-3">
+          <div>
+            <h1 className="text-3xl font-semibold tracking-tight text-gray-900">
+              Add account
+            </h1>
+            <p className="mt-2 text-sm text-gray-600">
+              Capture the basics. You can refine later. This account becomes your active context for playbooks and rules.
+            </p>
+          </div>
+          <Link
+            href="/dashboard"
+            className="rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-900 hover:bg-gray-50"
+          >
+            Back
+          </Link>
+        </div>
+
+        <div className="mt-8 space-y-4">
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+            <div className="text-sm font-semibold text-gray-900">Friendly name</div>
+            <p className="mt-1 text-xs text-gray-600">
+              What you call it day-to-day (e.g. “Apex 20-pack #3”, “Topstep Eval 50K”).
+            </p>
+            <input
+              value={friendlyName}
+              onChange={(e) => setFriendlyName(e.target.value)}
+              placeholder="e.g. Apex 20-pack #3"
+              className="mt-3 w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-amber-300/40"
+            />
+          </div>
+
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+            <div className="text-sm font-semibold text-gray-900">Firm</div>
+            <p className="mt-1 text-xs text-gray-600">This determines which playbooks and rule pages you’ll open.</p>
+
+            <div className="mt-3 flex flex-wrap gap-2">
+              {FIRM_CHOICES.map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => setFirmSlug(s)}
+                  className={`rounded-full border px-3 py-1 text-xs font-semibold ${
+                    firmSlug === s
+                      ? "border-gray-900 bg-gray-900 text-white"
+                      : "border-gray-200 bg-white text-gray-800 hover:bg-gray-50"
+                  }`}
+                >
+                  {titleizeFirm(s)}
+                </button>
+              ))}
+            </div>
+
+            <div className="mt-3 text-xs text-gray-500">
+              Selected: <span className="font-semibold text-gray-900">{firmName}</span>
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+            <div className="text-sm font-semibold text-gray-900">Account details</div>
+            <div className="mt-3 grid gap-3 md:grid-cols-2">
+              <div>
+                <div className="text-xs font-semibold text-gray-700">Account type (optional)</div>
+                <input
+                  value={accountType}
+                  onChange={(e) => setAccountType(e.target.value)}
+                  placeholder='e.g. "50K Eval", "PA", "XFA"'
+                  className="mt-2 w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-amber-300/40"
+                />
+              </div>
+              <div>
+                <div className="text-xs font-semibold text-gray-700">Account number (optional)</div>
+                <input
+                  value={accountNumber}
+                  onChange={(e) => setAccountNumber(e.target.value)}
+                  placeholder="e.g. 123456"
+                  className="mt-2 w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-amber-300/40"
+                />
+              </div>
+            </div>
+
+            <div className="mt-4">
+              <div className="text-xs font-semibold text-gray-700">Linked group (optional)</div>
+              <p className="mt-1 text-xs text-gray-600">
+                If you copy-trade a batch (e.g. Apex 20), give them the same group id (e.g. “apex20-jan”).
+              </p>
+              <input
+                value={linkedGroupId}
+                onChange={(e) => setLinkedGroupId(e.target.value)}
+                placeholder="e.g. apex20-jan"
+                className="mt-2 w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-amber-300/40"
+              />
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+            <div className="text-sm font-semibold text-gray-900">Phase</div>
+            <p className="mt-1 text-xs text-gray-600">
+              The phase this account is currently in. This is what unlocks the right playbooks.
+            </p>
+            <div className="mt-3 space-y-2">
+              {PHASES.map((p) => (
+                <button
+                  key={p.value}
+                  type="button"
+                  onClick={() => setPhase(p.value)}
+                  className={`w-full rounded-xl border px-3 py-2 text-left text-sm ${
+                    phase === p.value
+                      ? "border-gray-900 bg-gray-900 text-white"
+                      : "border-gray-200 bg-white text-gray-900 hover:bg-gray-50"
+                  }`}
+                >
+                  <div className="font-semibold">{p.label}</div>
+                  <div className={phase === p.value ? "text-white/80" : "text-gray-600"}>
+                    {p.note}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+            <div className="text-sm font-semibold text-gray-900">Notes (optional)</div>
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Anything you want to remember about this account…"
+              className="mt-3 min-h-[120px] w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-amber-300/40"
+            />
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              disabled={!canSave}
+              onClick={() => {
+                const res = upsertAccount({
+                  friendlyName: friendlyName.trim(),
+                  firmSlug: firmSlug.trim().toLowerCase(),
+                  accountType: accountType.trim() || undefined,
+                  accountNumber: accountNumber.trim() || undefined,
+                  phase,
+                  linkedGroupId: linkedGroupId.trim() || undefined,
+                  notes: notes.trim() || undefined,
+                });
+
+                router.push(`/dashboard/accounts/${res.account.id}`);
+              }}
+              className={`rounded-xl px-5 py-3 text-sm font-semibold ${
+                canSave
+                  ? "bg-gray-900 text-white hover:bg-gray-800"
+                  : "bg-gray-200 text-gray-500"
+              }`}
+            >
+              Save account
+            </button>
+
+            <Link
+              href="/dashboard"
+              className="rounded-xl border border-gray-200 bg-white px-5 py-3 text-sm font-semibold text-gray-900 hover:bg-gray-50"
+            >
+              Cancel
+            </Link>
+          </div>
+        </div>
+      </div>
+    </main>
+  );
+}
+
+
+===== src/lib/accounts.ts =====
+// src/lib/accounts.ts
+
+export type FirmPhase =
+  | "discovery"
+  | "evaluation"
+  | "stabilization"
+  | "payout"
+  | "maintenance";
+
+export type Account = {
+  id: string;
+  firmSlug: string;
+  phase: FirmPhase;
+
+  // Display / intake fields
+  name: string; // friendly name
+  accountNumber?: string;
+  accountType?: string;
+  status?: "active" | "paused" | "archived";
+
+  createdAt: string; // ISO
+  updatedAt: string; // ISO
+};
+
+type Store = {
+  version: 1;
+  activeAccountId: string | null;
+  accounts: Account[];
+};
+
+const STORE_KEY = "sf_accounts_store_v1";
+
+// legacy key from old single-account state (we migrate once)
+const LEGACY_SINGLE_KEY = "sf_account_state_v1";
+
+function nowIso() {
+  return new Date().toISOString();
+}
+
+function isBrowser() {
+  return typeof window !== "undefined" && typeof localStorage !== "undefined";
+}
+
+function safeParse<T>(raw: string | null): T | null {
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as T;
+  } catch {
+    return null;
+  }
+}
+
+function safeRead(key: string) {
+  if (!isBrowser()) return null;
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function safeWrite(key: string, value: unknown) {
+  if (!isBrowser()) return;
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    // ignore
+  }
+}
+
+export function isFirmPhase(value: any): value is FirmPhase {
+  return (
+    value === "discovery" ||
+    value === "evaluation" ||
+    value === "stabilization" ||
+    value === "payout" ||
+    value === "maintenance"
+  );
+}
+
+export function makeId(prefix = "acc") {
+  return `${prefix}_${Math.random().toString(16).slice(2)}_${Date.now().toString(16)}`;
+}
+
+function defaultStore(): Store {
+  return { version: 1, activeAccountId: null, accounts: [] };
+}
+
+/**
+ * One-time migrate from legacy single-account state if present.
+ * Does NOT delete the legacy key (non-destructive).
+ */
+function migrateLegacyIfNeeded(current: Store): Store {
+  if (!isBrowser()) return current;
+  if (current.accounts.length > 0) return current;
+
+  const legacy = safeParse<any>(safeRead(LEGACY_SINGLE_KEY));
+  if (!legacy || typeof legacy !== "object") return current;
+
+  const firmSlug =
+    typeof legacy.firmSlug === "string" && legacy.firmSlug.trim()
+      ? legacy.firmSlug.trim().toLowerCase()
+      : "topstep";
+
+  const phase: FirmPhase = isFirmPhase(legacy.currentPhase)
+    ? legacy.currentPhase
+    : "evaluation";
+
+  const id = makeId("migrated");
+  const now = nowIso();
+
+  const migrated: Account = {
+    id,
+    firmSlug,
+    phase,
+    name: `${firmSlug} (migrated)`,
+    status: "active",
+    createdAt: now,
+    updatedAt: now,
+  };
+
+  const next: Store = {
+    version: 1,
+    activeAccountId: id,
+    accounts: [migrated],
+  };
+
+  safeWrite(STORE_KEY, next);
+  return next;
+}
+
+function readStore(): Store {
+  const parsed = safeParse<Store>(safeRead(STORE_KEY));
+  if (
+    parsed &&
+    parsed.version === 1 &&
+    Array.isArray(parsed.accounts)
+  ) {
+    return migrateLegacyIfNeeded(parsed);
+  }
+
+  const fresh = migrateLegacyIfNeeded(defaultStore());
+  safeWrite(STORE_KEY, fresh);
+  return fresh;
+}
+
+function writeStore(store: Store) {
+  safeWrite(STORE_KEY, store);
+}
+
+export function listAccounts(): Account[] {
+  const s = readStore();
+  return s.accounts;
+}
+
+export function getAccount(id: string): Account | null {
+  const s = readStore();
+  return s.accounts.find((a) => a.id === id) ?? null;
+}
+
+export function getActiveAccountId(): string | null {
+  const s = readStore();
+  return s.activeAccountId ?? null;
+}
+
+export function setActiveAccountId(id: string) {
+  const s = readStore();
+  const exists = s.accounts.some((a) => a.id === id);
+  const next: Store = { ...s, activeAccountId: exists ? id : s.activeAccountId };
+  writeStore(next);
+}
+
+export function getActiveAccount(): Account | null {
+  const s = readStore();
+  if (!s.activeAccountId) return null;
+  return s.accounts.find((a) => a.id === s.activeAccountId) ?? null;
+}
+
+export function upsertAccount(input: Partial<Account> & { id?: string }): Account {
+  const s = readStore();
+  const now = nowIso();
+
+  const id = (input.id || "").trim() || makeId("acc");
+  const existing = s.accounts.find((a) => a.id === id);
+
+  const merged: Account = {
+    id,
+    firmSlug: (input.firmSlug ?? existing?.firmSlug ?? "topstep")
+      .toString()
+      .trim()
+      .toLowerCase(),
+    phase: (input.phase ?? existing?.phase ?? "evaluation") as FirmPhase,
+    name: (input.name ?? existing?.name ?? "Untitled account").toString().trim(),
+    accountNumber: (input.accountNumber ?? existing?.accountNumber)?.toString().trim() || undefined,
+    accountType: (input.accountType ?? existing?.accountType)?.toString().trim() || undefined,
+    status: (input.status ?? existing?.status ?? "active") as any,
+    createdAt: existing?.createdAt ?? now,
+    updatedAt: now,
+  };
+
+  const accounts = existing
+    ? s.accounts.map((a) => (a.id === id ? merged : a))
+    : [merged, ...s.accounts];
+
+  const activeAccountId = s.activeAccountId ?? merged.id;
+
+  const next: Store = { version: 1, accounts, activeAccountId };
+  writeStore(next);
+
+  return merged;
+}
+
+export function deleteAccount(id: string) {
+  const s = readStore();
+  const accounts = s.accounts.filter((a) => a.id !== id);
+  const activeAccountId =
+    s.activeAccountId === id ? (accounts[0]?.id ?? null) : s.activeAccountId;
+
+  const next: Store = { version: 1, accounts, activeAccountId };
+  writeStore(next);
+}
