@@ -78,7 +78,6 @@ function MiniCompare() {
         </div>
 
         {[
-          ["Discovery (firm structure & constraints)", true, true],
           ["Strategy Analysis (rule friction review)", true, true],
           ["Rule Changes tracking", true, true],
           ["Today: daily operating surface", false, true],
@@ -202,7 +201,6 @@ export default function PricingPage() {
               <PriceLine price="$0" suffix="" />
 
               <ul className="mt-5 space-y-2 text-sm text-gray-700">
-                <Bullet>Discovery (firm structure & constraints)</Bullet>
                 <Bullet>Strategy Analysis (rule friction review)</Bullet>
                 <Bullet>Rule Changes tracking</Bullet>
                 <Bullet>Saved analysis history</Bullet>
@@ -237,13 +235,13 @@ export default function PricingPage() {
               </p>
 
               <ul className="mt-5 space-y-2 text-sm text-gray-700">
-                <Bullet>Today: daily operating surface</Bullet>
-                <Bullet>Firm + phase playbooks</Bullet>
-                <Bullet>Checklists defining a correct trading day</Bullet>
-                <Bullet>Rule-aware guidance (no signals)</Bullet>
-                <Bullet>Accountability pairing (as it ships)</Bullet>
-                <Bullet>Discovery + Strategy Analysis included</Bullet>
-              </ul>
+  <Bullet>Today: daily operating surface</Bullet>
+  <Bullet>Firm + phase playbooks</Bullet>
+  <Bullet>Checklists defining a correct trading day</Bullet>
+  <Bullet>Rule-aware guidance (no signals)</Bullet>
+  <Bullet>Accountability pairing (as it ships)</Bullet>
+</ul>
+
 
               <p className="mt-5 text-xs text-gray-600">
                 Founder pricing is temporary. Your rate stays locked while active.
