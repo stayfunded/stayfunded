@@ -1,474 +1,213 @@
-// src/app/page.tsx
-import Image from "next/image";
 import Link from "next/link";
 
 export const metadata = {
-  title: "StayFunded — A daily operating system for prop firm accounts",
+  title: "StayFunded - Framework Membership for Prop Firm Traders",
   description:
-    "StayFunded helps traders operate prop firm accounts correctly inside the rules — increasing your chances of passing evaluations, keeping funded accounts, and getting paid (without promises).",
+    "StayFunded is a framework membership for prop firm traders focused on execution structure, accountability, and phase-correct behavior under firm rules.",
 };
-
-function Pill({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold text-white/75">
-      {children}
-    </span>
-  );
-}
-
-function Card({
-  title,
-  body,
-  bullets,
-  cta,
-}: {
-  title: string;
-  body?: string;
-  bullets?: string[];
-  cta?: { label: string; href: string; primary?: boolean };
-}) {
-  return (
-    <div className="rounded-2xl border border-white/10 bg-white/5 p-5 flex flex-col">
-      <div className="text-base font-semibold text-white">{title}</div>
-
-      {body ? <p className="mt-2 text-sm text-white/70">{body}</p> : null}
-
-      {bullets?.length ? (
-        <ul className="mt-4 space-y-2 text-sm text-white/70">
-          {bullets.map((b) => (
-            <li key={b} className="flex gap-2">
-              <span className="mt-[6px] h-1.5 w-1.5 shrink-0 rounded-full bg-amber-400" />
-              <span>{b}</span>
-            </li>
-          ))}
-        </ul>
-      ) : null}
-
-      {cta ? (
-        <div className="mt-auto pt-5">
-          <Link
-            href={cta.href}
-            className={
-              cta.primary
-                ? "inline-flex w-full justify-center rounded-lg bg-amber-400 px-4 py-2.5 text-sm font-semibold text-black hover:bg-amber-300"
-                : "inline-flex w-full justify-center rounded-lg border border-white/15 bg-white/5 px-4 py-2.5 text-sm font-semibold text-white hover:bg-white/10"
-            }
-          >
-            {cta.label}
-          </Link>
-        </div>
-      ) : null}
-    </div>
-  );
-}
-
-function PrimaryHomepageVisualPlaceholder() {
-  return (
-    <div className="rounded-2xl border border-white/10 bg-gradient-to-b from-white/5 to-transparent p-6">
-      <div className="flex items-start justify-between gap-6 flex-col lg:flex-row">
-        <div className="max-w-xl">
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/20 px-3 py-1 text-xs font-semibold text-white/70">
-            <span className="h-2 w-2 rounded-full bg-amber-400" />
-            Primary visual placeholder
-          </div>
-          <div className="mt-3 text-lg font-semibold text-white">
-            One framework. Every phase.
-          </div>
-          <p className="mt-2 text-sm text-white/70 leading-relaxed">
-            The system that increases the odds of passing evaluations, keeping
-            funded accounts, and getting paid is not “more strategy.” It’s the
-            operating system: Today → Playbooks → Accountability, running under
-            the full account lifecycle.
-          </p>
-
-          <div className="mt-4 grid gap-2 text-sm text-white/70">
-            <div className="flex gap-2">
-              <span className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full bg-amber-400" />
-              <span>Shows the 3-step operating system</span>
-            </div>
-            <div className="flex gap-2">
-              <span className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full bg-amber-400" />
-              <span>Shows the phase lifecycle traders actually go through</span>
-            </div>
-            <div className="flex gap-2">
-              <span className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full bg-amber-400" />
-              <span>Makes the value obvious without promises</span>
-            </div>
-          </div>
-
-          <div className="mt-5 flex flex-col gap-2 sm:flex-row">
-            <Link
-              href="/framework"
-              className="inline-flex items-center justify-center rounded-lg bg-white px-4 py-2 text-sm font-semibold text-black hover:bg-white/90"
-            >
-              See the full framework
-            </Link>
-            <Link
-              href="/pricing"
-              className="inline-flex items-center justify-center rounded-lg border border-white/15 bg-white/5 px-4 py-2 text-sm font-semibold text-white hover:bg-white/10"
-            >
-              Pricing
-            </Link>
-          </div>
-        </div>
-
-        <div className="w-full lg:w-[620px]">
-          <div className="rounded-xl border border-white/10 bg-black/30 p-4">
-            <div className="aspect-[16/8] w-full rounded-lg border border-white/10 bg-gradient-to-b from-white/[0.06] to-transparent" />
-            <div className="mt-3 flex items-center justify-between text-xs text-white/55">
-              <span>Diagram placeholder (generate later)</span>
-              <span className="font-semibold text-amber-400">16:8</span>
-            </div>
-          </div>
-
-          {/* IMAGE PROMPT — generate later (copy/paste to image generation)
-              PURPOSE:
-              Homepage "spine" diagram. Must feel like a control system, not decoration.
-
-              ABSOLUTE REQUIREMENTS:
-              - Dark-mode premium SaaS vector diagram.
-              - NO text in the image (no labels, no numbers).
-              - NO candlesticks, charts, PnL, crypto visuals.
-
-              COMPOSITION:
-              1) Top row: 5 connected rounded nodes (lifecycle) for:
-                 Discovery → Evaluation → Stabilization → Payout → Maintenance
-                 (Represent nodes only; do not label them.)
-              2) Bottom row: 3 connected larger blocks (framework):
-                 Today → Playbooks → Accountability
-                 (Represent blocks only; do not label them.)
-              3) Bracket/containment underline tying the bottom system to the top lifecycle.
-              4) Subtle icon shapes inside the 3 blocks:
-                 - checklist/clock motif (Today)
-                 - book/shield motif (Playbooks)
-                 - two-person/lock + stop-control motif (Accountability)
-
-              STYLE:
-              - Deep navy background, soft gray lines, restrained amber highlight.
-              - Lots of negative space, rounded corners, soft glow.
-
-              OUTPUT:
-              - High resolution, aspect ratio 16:8.
-          */}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function HomepageDemoVideoPlaceholder() {
-  return (
-    <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
-      <div className="flex items-start justify-between gap-6 flex-col lg:flex-row">
-        <div className="max-w-xl">
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/20 px-3 py-1 text-xs font-semibold text-white/70">
-            <span className="h-2 w-2 rounded-full bg-amber-400" />
-            Demo video placeholder
-          </div>
-
-          <div className="mt-3 text-lg font-semibold text-white">
-            Watch the system in 90 seconds
-          </div>
-
-          <p className="mt-2 text-sm text-white/70 leading-relaxed">
-            This should be a fast walkthrough that makes one thing obvious:
-            StayFunded is built to increase the odds of passing evaluations,
-            keeping funded accounts, and getting paid by reducing unforced errors
-            and rule violations — without promising outcomes.
-          </p>
-
-          <div className="mt-5 flex flex-col gap-2 sm:flex-row">
-            <Link
-              href="/strategy-analysis"
-              className="inline-flex items-center justify-center rounded-lg bg-amber-400 px-4 py-2 text-sm font-semibold text-black hover:bg-amber-300"
-            >
-              Run Strategy Analysis (Free)
-            </Link>
-            <Link
-              href="/framework"
-              className="inline-flex items-center justify-center rounded-lg border border-white/15 bg-white/5 px-4 py-2 text-sm font-semibold text-white hover:bg-white/10"
-            >
-              See the Framework
-            </Link>
-          </div>
-
-          <div className="mt-3 text-xs text-white/55">
-            (Video goes here later — this is a placeholder box.)
-          </div>
-        </div>
-
-        <div className="w-full lg:w-[620px]">
-          <div className="aspect-video w-full rounded-xl border border-white/10 bg-black/30" />
-
-          {/* DEMO VIDEO SCRIPT PROMPT — use later to generate a perfect homepage demo
-              Length: 75–90 seconds. Ruthlessly tight. Outcome-forward without promises.
-
-              GOAL:
-              Turn a skeptical prop trader into: "Oh, this is the missing structure."
-              Then push them to: Strategy Analysis (free) as the first action.
-
-              STRUCTURE (timeboxed):
-              0–10s (Hook):
-                - "Most traders fail prop firms for the same reason: unforced errors under rules."
-
-              10–25s (Reality):
-                - "Strategies can work. You still fail when rules + phase constraints punish behavior."
-                - Mention: eval vs funded vs payout behaviors differ.
-
-              25–55s (The system):
-                - Today: go/no-go, guardrails, stop conditions (show UI)
-                - Playbooks: firm+phase behaviors (prioritize/avoid/constraints/gotchas) (show UI)
-                - Accountability: pairing + enforcement (show concept)
-
-              55–75s (Outcomes framing, no promises):
-                - "Built to increase your chances of passing evaluations, keeping funded accounts, and getting paid
-                   by reducing violations and drift."
-
-              75–90s (CTA):
-                - "Run the free Strategy Analysis to see where your behavior quietly breaks under your firm’s rules."
-
-              VISUAL GUIDANCE:
-              - Use the existing hero screenshot briefly.
-              - Then show a clean “Today plan” view (go/no-go + stop conditions).
-              - Then show a Playbook view (prioritize/avoid + gotcha callout).
-              - Then show Accountability concept (shared plan + enforcement).
-
-              DO NOT:
-              - Claim results, show PnL, show charts, or say “guaranteed.”
-              - Use hype language (“easy”, “get rich”, etc.).
-          */}
-        </div>
-      </div>
-    </div>
-  );
-}
 
 export default function HomePage() {
   return (
     <main className="min-h-screen bg-[#070A14] text-white">
-      <div className="mx-auto max-w-[1280px] px-4 py-12 sm:px-6 sm:py-16">
-        {/* HERO */}
-        <section className="grid items-center gap-10 lg:grid-cols-2">
-          <div className="max-w-xl">
-            <div className="flex flex-wrap gap-2">
-              <Pill>No signals</Pill>
-              <Pill>No trade calls</Pill>
-              <Pill>Rule-aware</Pill>
-              <Pill>Phase-correct</Pill>
-            </div>
-
-            <h1 className="mt-4 text-4xl font-semibold tracking-tight sm:text-5xl">
-              Most traders don’t fail because of strategy.
-              <br />
-              They fail because they operate prop firm accounts incorrectly.
-            </h1>
-
-            <p className="mt-5 text-lg text-white/70">
-              Prop firms are designed so most traders fail — even with working
-              strategies. StayFunded gives you the structure to operate your prop
-              firm account correctly inside the rules, adapt by phase, and avoid
-              the unforced errors that quietly blow accounts.
-            </p>
-
-            <p className="mt-3 text-sm text-white/70">
-              StayFunded is built to{" "}
-              <span className="font-semibold text-white">
-                increase your chances of passing evaluations, keeping funded
-                accounts, and getting paid
-              </span>{" "}
-              by enforcing rule-aware, phase-correct behavior every day — without
-              signals, trade calls, or false promises.
-            </p>
-
-            <div className="mt-7 flex flex-col gap-3 sm:flex-row">
-              <Link
-                href="/framework"
-                className="inline-flex items-center justify-center rounded-lg bg-white px-5 py-3 text-sm font-semibold text-black hover:bg-white/90"
-              >
-                See the Framework
-              </Link>
-              <Link
-                href="/strategy-analysis"
-                className="inline-flex items-center justify-center rounded-lg bg-amber-400 px-5 py-3 text-sm font-semibold text-black hover:bg-amber-300"
-              >
-                Run Strategy Analysis (Free)
-              </Link>
-            </div>
-
-            <p className="mt-3 text-xs text-white/55">
-              No signals. No trade calls. No guarantees.
-            </p>
-          </div>
-
-          <div className="relative">
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
-              <div className="relative overflow-hidden rounded-xl">
-                <Image
-                  src="/visuals/home/hero-dashboard-final2.png"
-                  alt="Example: passed evaluation and unlocked funded account rules"
-                  width={1400}
-                  height={900}
-                  priority
-                  className="h-auto w-full"
-                />
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* PRIMARY VISUAL (placeholder) */}
-        <section className="mt-14">
-          <PrimaryHomepageVisualPlaceholder />
-        </section>
-
-        {/* HOMEPAGE DEMO VIDEO (placeholder) */}
-        <section className="mt-14">
-          <HomepageDemoVideoPlaceholder />
-        </section>
-
-        {/* CONCRETE PROOF (qualitative, no stats) */}
-        <section className="mt-14 grid gap-4 md:grid-cols-3">
-          <Card
-            title="Concrete proof: phase-correct behavior"
-            body="Most traders use evaluation behavior in funded accounts and slowly bleed out. StayFunded forces phase-specific discipline."
-            bullets={[
-              "Different constraints, different failure modes",
-              "Stop treating phases like the same game",
-              "Operate for survival first, then payouts",
-            ]}
-          />
-          <Card
-            title="Concrete proof: rule friction (not strategy)"
-            body="Most blowups are unforced errors caused by rules interacting with behavior."
-            bullets={[
-              "Trailing drawdown traps",
-              "Size creep in buffer windows",
-              "“One more trade” spirals near limits",
-            ]}
-          />
-          <Card
-            title="Concrete proof: enforcement"
-            body="Plans fail when emotions show up. Accountability makes the plan real."
-            bullets={[
-              "A partner can stop drift live",
-              "Consistency beats intensity",
-              "Fewer violations = longer survival",
-            ]}
-          />
-        </section>
-
-        {/* REALITY CHECK */}
-        <section className="mt-14 grid gap-4 md:grid-cols-2">
-          <Card
-            title="Why most prop firm traders fail"
-            bullets={[
-              "They violate rules without realizing it.",
-              "They trade when they shouldn’t.",
-              "They don’t trade the same way every day.",
-              "They ignore phase differences (eval vs funded).",
-              "They have no enforcement when emotions kick in.",
-            ]}
-          />
-          <Card
-            title="What StayFunded actually fixes"
-            body="We don’t replace your strategy. We replace the operating discipline around it — the part that determines whether your strategy survives inside prop firm rules."
-            bullets={[
-              "Daily operating plans",
-              "Firm + phase playbooks",
-              "Rule-aware pressure testing",
-              "Checklists that define a correct trading day",
-              "Accountability with enforcement",
-            ]}
-          />
-        </section>
-
-        {/* FRAMEWORK OVERVIEW */}
-        <section className="mt-16">
-          <h2 className="text-2xl font-semibold">The StayFunded framework</h2>
-          <p className="mt-2 max-w-2xl text-sm text-white/70">
-            One system. Three parts. Each part has a job.
+      <div className="mx-auto max-w-[1100px] px-4 py-12 sm:px-6 sm:py-16">
+        <section className="rounded-3xl border border-white/10 bg-white/5 p-8 sm:p-10">
+          <h1 className="max-w-4xl text-4xl font-semibold tracking-tight sm:text-5xl">
+            You don&rsquo;t need a new strategy.
+            <br />
+            You need a framework membership that keeps you executing the one you already have.
+          </h1>
+          <p className="mt-5 max-w-3xl text-lg text-white/75">
+            Most traders already have an edge. What they don&rsquo;t have is structure, a real trade plan, and anyone watching them execute it. StayFunded exists to make execution real &mdash; inside prop firm rules.
           </p>
-
-          <div className="mt-6 grid gap-4 md:grid-cols-3">
-            <Card
-              title="Today"
-              body="Your daily operating surface."
-              bullets={[
-                "Go / no-go decisions",
-                "Risk limits and stop conditions",
-                "Phase-correct execution",
-              ]}
-              cta={{ label: "Explore Today", href: "/today" }}
-            />
-            <Card
-              title="Playbooks"
-              body="Firm + phase behavior plans."
-              bullets={[
-                "How rules actually punish behavior",
-                "What matters right now",
-                "What to avoid in this phase",
-              ]}
-              cta={{ label: "Explore Playbooks", href: "/playbooks" }}
-            />
-            <Card
-              title="Accountability"
-              body="Enforcement when it matters."
-              bullets={[
-                "One trades, one enforces",
-                "Violations caught live",
-                "Consistency beats intensity",
-              ]}
-              cta={{ label: "Explore Accountability", href: "/accountability" }}
-            />
-          </div>
-        </section>
-
-        {/* FREE ENTRY — ALIGNED */}
-        <section className="mt-16 grid gap-4 md:grid-cols-2">
-          <Card
-            title="Discovery"
-            body="Choose the right firm and account structure before you pay."
-            bullets={[
-              "Structural fragility",
-              "Incentives vs punishments",
-              "Links directly into playbooks",
-            ]}
-            cta={{ label: "Open Discovery", href: "/discovery" }}
-          />
-          <Card
-            title="Strategy Analysis"
-            body="Pressure-test how you trade against real firm rules."
-            bullets={["No market analysis", "No edge grading", "Rule friction only"]}
-            cta={{
-              label: "Run Strategy Analysis",
-              href: "/strategy-analysis",
-              primary: true,
-            }}
-          />
-        </section>
-
-        {/* FINAL ANCHOR */}
-        <section className="mt-20 rounded-2xl border border-white/10 bg-white/5 p-6">
-          <div className="text-lg font-semibold">StayFunded is not for everyone.</div>
-          <p className="mt-2 max-w-3xl text-sm text-white/70">
-            If you want signals, shortcuts, or someone to tell you what to trade,
-            this isn’t it. If you want a disciplined operating system that
-            increases your chances of passing evaluations, keeping funded accounts,
-            and getting paid — this is what you’ve been missing.
-          </p>
-
-          <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+          <div className="mt-7 flex flex-col gap-3 sm:flex-row">
             <Link
               href="/framework"
-              className="inline-flex items-center justify-center rounded-lg bg-white px-4 py-2 text-sm font-semibold text-black hover:bg-white/90"
+              className="inline-flex items-center justify-center rounded-lg bg-white px-5 py-3 text-sm font-semibold text-black hover:bg-white/90"
             >
               See the Framework
             </Link>
             <Link
-              href="/pricing"
-              className="inline-flex items-center justify-center rounded-lg border border-white/15 bg-white/5 px-4 py-2 text-sm font-semibold text-white hover:bg-white/10"
+              href="/recovery"
+              className="inline-flex items-center justify-center rounded-lg bg-amber-400 px-5 py-3 text-sm font-semibold text-black hover:bg-amber-300"
             >
-              Pricing
+              On your last leg? Try Recovery (30-day reset)
+            </Link>
+          </div>
+          <p className="mt-4 text-xs text-white/60">
+            Bring your own strategy. Keep your educator. No signals. No promises.
+          </p>
+        </section>
+
+        <section className="mt-16">
+          <h2 className="text-3xl font-semibold tracking-tight">
+            The hardest parts of trading aren&rsquo;t taught &mdash; they&rsquo;re exposed.
+          </h2>
+          <div className="mt-4 max-w-4xl space-y-4 text-white/75">
+            <p>
+              Every trader hears about discipline, fear, and greed. Very few actually train them.
+            </p>
+            <p>
+              Because trading is solitary. No one sees you bend rules. No one stops &ldquo;just this once.&rdquo;
+              <br />
+              And prop firm rules punish small lapses fast.
+            </p>
+            <p>
+              StayFunded is built to tackle the intangibles veterans talk about &mdash; by structure and visibility, inside a membership you operate within over time.
+            </p>
+          </div>
+          <ul className="mt-6 grid gap-2 text-sm text-white/80 sm:grid-cols-2">
+            {[
+              "rule-bending rationalization",
+              "discipline decay over time",
+              "size creep after wins",
+              "hesitation after losses",
+              "revenge impulses near limits",
+              "phase blindness (evaluation vs funded vs payout behavior)",
+              "“just one more trade” spirals",
+              "emotional carryover day-to-day",
+              "trading alone with no enforcement",
+            ].map((item) => (
+              <li
+                key={item}
+                className="flex items-start gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2"
+              >
+                <span className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full bg-amber-400" />
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <section className="mt-16 rounded-2xl border border-white/10 bg-white/5 p-6 sm:p-8">
+          <h2 className="text-2xl font-semibold">
+            If you need StayFunded, you&rsquo;re not broken. You&rsquo;re normal.
+          </h2>
+          <ul className="mt-5 space-y-2 text-white/80">
+            {[
+              "blown more than one prop firm account",
+              "traded well in theory but failed live",
+              "broken rules you knew you shouldn&rsquo;t",
+              "drifted and felt embarrassed admitting it",
+            ].map((item) => (
+              <li key={item} className="flex gap-2">
+                <span className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full bg-amber-400" />
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-5 max-w-3xl text-white/75">
+            You&rsquo;re not alone. You&rsquo;re the majority.
+            <br />
+            StayFunded is the missing wedge between knowing what to do &mdash; and actually doing it.
+          </p>
+        </section>
+
+        <section className="mt-16">
+          <h2 className="text-3xl font-semibold tracking-tight">
+            The StayFunded Framework membership
+          </h2>
+          <p className="mt-3 max-w-3xl text-white/75">
+            StayFunded doesn&rsquo;t replace your strategy or teacher. It gives them a place to actually work.
+          </p>
+          <div className="mt-6 grid gap-4 md:grid-cols-3">
+            <article className="rounded-2xl border border-white/10 bg-white/5 p-5">
+              <h3 className="text-lg font-semibold text-white">Today</h3>
+              <p className="mt-2 text-sm text-white/75">
+                What matters right now for your specific prop firm account and phase. No noise.
+              </p>
+            </article>
+            <article className="rounded-2xl border border-white/10 bg-white/5 p-5">
+              <h3 className="text-lg font-semibold text-white">Playbooks</h3>
+              <p className="mt-2 text-sm text-white/75">
+                How behavior must change across phases &mdash; and why traders fail even when profitable.
+              </p>
+            </article>
+            <article className="rounded-2xl border border-white/10 bg-white/5 p-5">
+              <h3 className="text-lg font-semibold text-white">Accountability</h3>
+              <p className="mt-2 text-sm text-white/75">
+                Your trade plan is explicit and committed. You don&rsquo;t trade on an island anymore.
+              </p>
+            </article>
+          </div>
+          <div className="mt-6">
+            <Link
+              href="/framework"
+              className="inline-flex items-center justify-center rounded-lg bg-white px-5 py-3 text-sm font-semibold text-black hover:bg-white/90"
+            >
+              Explore the Framework
+            </Link>
+          </div>
+        </section>
+
+        <section className="mt-16 rounded-2xl border border-white/10 bg-white/5 p-6 sm:p-8">
+          <h2 className="text-2xl font-semibold">
+            Accountability changes behavior. Everyone knows this.
+          </h2>
+          <p className="mt-4 max-w-3xl text-white/75">
+            You trade differently when someone can see the plan you committed to, the rules you agreed to follow, and the account you&rsquo;re operating.
+          </p>
+          <p className="mt-3 max-w-3xl text-white/75">
+            StayFunded makes execution visible &mdash; without signals, policing, or gurus.
+          </p>
+        </section>
+
+        <section className="mt-16 rounded-2xl border border-white/10 bg-white/5 p-6 sm:p-8">
+          <h2 className="text-2xl font-semibold">
+            Recovery: a 30-day reset when execution breaks
+          </h2>
+          <p className="mt-4 max-w-3xl text-white/75">
+            Recovery is for traders who know their strategy works but keep breaking rules and are close to giving up.
+          </p>
+          <p className="mt-3 max-w-3xl text-white/75">
+            It adds higher-touch accountability and structure &mdash; temporarily.
+            <br />
+            Recovery isn&rsquo;t permanent. It&rsquo;s a way back.
+          </p>
+          <div className="mt-5">
+            <Link
+              href="/recovery"
+              className="inline-flex items-center justify-center rounded-lg bg-amber-400 px-5 py-3 text-sm font-semibold text-black hover:bg-amber-300"
+            >
+              Learn about Recovery
+            </Link>
+          </div>
+        </section>
+
+        <section className="mt-16 rounded-2xl border border-white/10 bg-white/5 p-6 sm:p-8">
+          <p className="max-w-3xl text-white/75">
+            StayFunded exists because I needed it &mdash; and it didn&rsquo;t exist.
+            <br />
+            I had a strategy. I understood markets. I still lost everything by trading alone and breaking my own rules.
+          </p>
+          <div className="mt-5">
+            <Link
+              href="/why"
+              className="inline-flex items-center justify-center rounded-lg border border-white/15 bg-white/5 px-5 py-3 text-sm font-semibold text-white hover:bg-white/10"
+            >
+              Why StayFunded exists
+            </Link>
+          </div>
+        </section>
+
+        <section className="mt-20 rounded-3xl border border-white/10 bg-gradient-to-br from-white/10 to-white/5 p-6 sm:p-8">
+          <h2 className="text-3xl font-semibold tracking-tight">Start with clarity.</h2>
+          <p className="mt-4 max-w-3xl text-white/75">
+            Run the free Strategy Analysis to see where your approach quietly breaks under prop firm rules.
+            <br />
+            If the strategy is viable but execution breaks, that&rsquo;s what the Framework membership is built to fix.
+          </p>
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+            <Link
+              href="/strategy-analysis"
+              className="inline-flex items-center justify-center rounded-lg bg-amber-400 px-5 py-3 text-sm font-semibold text-black hover:bg-amber-300"
+            >
+              Start Strategy Analysis (Free)
+            </Link>
+            <Link
+              href="/framework"
+              className="inline-flex items-center justify-center rounded-lg bg-white px-5 py-3 text-sm font-semibold text-black hover:bg-white/90"
+            >
+              See the Framework
             </Link>
           </div>
         </section>
