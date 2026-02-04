@@ -5,11 +5,11 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Pricing — StayFunded",
   description:
-    "StayFunded pricing. A daily operating system for trading prop firm accounts correctly: Today, Playbooks, and Accountability. No signals. No guarantees.",
+    "StayFunded pricing. A framework membership for phase-aware execution under prop firm rules: Today, Playbooks, and Accountability. No signals. No guarantees.",
   openGraph: {
     title: "Pricing — StayFunded",
     description:
-      "Pricing for StayFunded — a daily operating system for prop firm accounts. Built for rule-aware, phase-correct trading. No signals. No guarantees.",
+      "Pricing for StayFunded — a framework membership for prop firm accounts. Built for rule-aware, phase-correct execution. No signals. No guarantees.",
     type: "website",
   },
 };
@@ -61,7 +61,7 @@ function MiniCompare() {
           </div>
           <p className="mt-1 text-sm text-gray-600 max-w-2xl">
             StayFunded is a system, not a tool bundle. Pro/Lifetime unlock the
-            full operating system: Today → Playbooks → Accountability.
+            full framework membership: Today → Playbooks → Accountability.
           </p>
         </div>
         <div className="text-xs text-gray-500">
@@ -174,8 +174,8 @@ export default function PricingPage() {
             </h1>
 
             <p className="mt-3 text-base text-gray-600">
-              StayFunded is a daily operating system for prop firm accounts. It
-              teaches and enforces the correct way to operate under real prop firm
+              StayFunded is a framework membership for prop firm accounts. It
+              teaches and enforces phase-aware execution structure under real prop firm
               rules — day by day, phase by phase.
             </p>
 
@@ -235,12 +235,12 @@ export default function PricingPage() {
               </p>
 
               <ul className="mt-5 space-y-2 text-sm text-gray-700">
-  <Bullet>Today: daily operating surface</Bullet>
-  <Bullet>Firm + phase playbooks</Bullet>
-  <Bullet>Checklists defining a correct trading day</Bullet>
-  <Bullet>Rule-aware guidance (no signals)</Bullet>
-  <Bullet>Accountability pairing (as it ships)</Bullet>
-</ul>
+                <Bullet>Today: daily operating surface</Bullet>
+                <Bullet>Firm + phase playbooks</Bullet>
+                <Bullet>Checklists defining a correct trading day</Bullet>
+                <Bullet>Rule-aware guidance (no signals)</Bullet>
+                <Bullet>Accountability pairing (as it ships)</Bullet>
+              </ul>
 
 
               <p className="mt-5 text-xs text-gray-600">
